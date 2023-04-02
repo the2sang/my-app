@@ -1,30 +1,78 @@
 import './App.css';
-import { BrowserRouter as Router, Routes, Route} from 'react-router-dom';
-import {Home} from "./pages/Home";
-import {Contact} from "./pages/Contact";
-import {Navbar} from "./Navbar";
-import {Profile} from "./pages/Profile";
-import {useState, createContext } from "react";
+import {useReducer, useState} from "react";
+import Student from "./Student";
+import student from "./Student";
 
-export const AppContext = createContext();
+const reducer = (state, action) => {
+  switch (action.type) {
+    case 'add-student':
+      const name = action.payload.name;
+      const newStudent = {
+        id: Date.now(),
+        name,
+        isHere: false,
+      }
+      return {
+        count: state.count + 1,
+        students: [...state.students, newStudent],
+      };
+    case 'delete-student':
+      return {
+        count: state.count - 1,
+        students: state.students.filter(student => student.id !== action.payload.id),
+      };
+    case 'mark-student':
+      return {
+        count: state.count,
+        students: state.students.map(student => {
+          if (student.id === action.payload.id) {
+            return {...student, isHere: !student.isHere}
+          }
+          return student;
+        }),
+      }
+    default:
+      return state;
+  }
+};
+
+const initialState = {
+  count: 0,
+  students: [],
+};
+
 
 
 function App() {
-  const [username, setUsername] = useState("PedroTech");
+  const [name, setName] = useState('');
+  const [studentsInfo, dispatch] = useReducer(reducer, initialState);
+
+
 
   return (
     <div className="App">
-      <AppContext.Provider value={{username, setUsername}}>
-      <Router>
-        <Navbar />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/profile" element={<Profile />}/>
-          <Route path="/contact" element={<Contact />}/>
-          <Route path="*" element={<h1>PAGE NOT FOUND</h1>}/>
-        </Routes>
-      </Router>
-      </AppContext.Provider>
+      <h1>출석부</h1>
+      <p>총 학생 수: {studentsInfo.count}</p>
+      <input
+        type="text"
+        placeholder="이름을 입력해주세요"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        />
+      <button onClick={() => {
+        dispatch({type: 'add-student', payload: {name}})
+      }}>추가</button>
+      {studentsInfo.students.map((student) => {
+        return (
+          <Student
+            key={student.id}
+            name={student.name}
+            dispatch={dispatch}
+            id={student.id}
+            isHere={student.isHere}
+          />
+        )
+      })}
     </div>
   );
 }
