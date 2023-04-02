@@ -1,7 +1,6 @@
 import './App.css';
 import {useReducer, useState} from "react";
 import Student from "./Student";
-import student from "./Student";
 
 const reducer = (state, action) => {
   switch (action.type) {
